@@ -1,5 +1,5 @@
 // Service Worker para PWA Memo - Offline First
-const CACHE_NAME = 'memo-v1';
+const CACHE_NAME = 'memo-v2';
 const ASSETS = [
   './',
   './index.html',
