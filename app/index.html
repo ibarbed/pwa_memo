@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!--
+  =====================================================
+  PWA MEMO - App de Memorización Offline-First
+  =====================================================
+
+  README - INSTRUCCIONES
+
+  PROBAR LOCALMENTE:
+  1. Necesitas un servidor HTTP local (el service worker no funciona con file://)
+  2. Opciones:
+     - Python 3: python -m http.server 8000
+     - Python 2: python -m SimpleHTTPServer 8000
+     - Node.js: npx serve .
+     - VS Code: extensión "Live Server"
+  3. Abre http://localhost:8000 en tu navegador
+
+  PUBLICAR EN GITHUB PAGES:
+  1. Sube la carpeta /app al repositorio (puede ser en la raíz o en /docs)
+  2. Ve a Settings > Pages
+  3. Selecciona la rama y carpeta donde está index.html
+  4. Espera unos minutos y accede a https://tu-usuario.github.io/tu-repo/
+
+  GENERAR ICONOS PNG:
+  Para iconos óptimos en iOS, convierte icons/icon.svg a PNG:
+  - icon-192.png (192x192)
+  - icon-512.png (512x512)
+  Puedes usar herramientas online como realfavicongenerator.net
+
+  =====================================================
+  -->
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="description" content="App de memorización offline-first con casillero mental y ejercicios diarios">
+
+  <title>Memo - Entrenamiento de Memoria</title>
+
+  <!-- Manifest -->
+  <link rel="manifest" href="./manifest.webmanifest">
+
+  <!-- Favicon e iconos -->
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="./styles.css">
+
+  <!-- Datos (se cargan antes de app.js) -->
+  <script src="./data/mental_casillero.js"></script>
+  <script src="./data/objetos.js"></script>
+  <script src="./data/conceptos.js"></script>
+</head>
+<body>
+  <div id="app">
+    <main>
+      <!-- Contenido dinámico renderizado por app.js -->
+      <div class="loading" style="display: flex; align-items: center; justify-content: center; height: 80vh;">
+        <p>Cargando...</p>
+      </div>
+    </main>
+
+    <!-- Navegación inferior -->
+    <nav>
+      <button data-route="home" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </button>
+      <button data-route="numeros">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <span>Números</span>
+      </button>
+      <button data-route="objetos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span>Objetos</span>
+      </button>
+      <button data-route="conceptos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <span>Conceptos</span>
+      </button>
+      <button data-route="ajustes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>Ajustes</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- App principal -->
+  <script src="./app.js"></script>
+</body>
+</html>
