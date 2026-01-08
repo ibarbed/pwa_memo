@@ -776,16 +776,14 @@
           <div class="content">${content}</div>
           ${secondary ? `<div class="secondary">${secondary}</div>` : ''}
         </div>
-        ${isLast ? `
-          <div class="test-actions" style="width: 100%; max-width: 320px;">
+        <div class="memo-actions">
+          ${isLast ? `
             <button class="btn btn-secondary" id="saveBtn">Guardar</button>
             <button class="btn btn-primary" id="testBtn">Test hoy</button>
-          </div>
-        ` : `
-          <button class="btn btn-primary" id="nextBtn" style="width: 100%; max-width: 320px;">
-            Siguiente
-          </button>
-        `}
+          ` : `
+            <button class="btn btn-primary" id="nextBtn">Siguiente</button>
+          `}
+        </div>
         <div class="memo-timer">
           Tiempo: <span id="elapsed">0:00</span>
         </div>
@@ -845,12 +843,10 @@
       <div class="timer-container">
         <div class="timer-label">Repasa mentalmente antes del test</div>
         <div class="timer-display" id="timerDisplay">${formatTime(remaining)}</div>
-        <button class="btn btn-primary" id="startTestBtn" style="display: none;">
-          Comenzar test
-        </button>
-        <button class="btn btn-secondary" id="skipBtn">
-          Saltar espera
-        </button>
+        <div class="timer-actions">
+          <button class="btn btn-primary" id="startTestBtn" style="display: none;">Comenzar test</button>
+          <button class="btn btn-secondary" id="skipBtn">Saltar espera</button>
+        </div>
       </div>
     `;
 

@@ -161,6 +161,10 @@ h2 {
   max-width: 300px;
 }
 
+.flashcard-nav .btn {
+  flex: 1;
+}
+
 /* === Botones === */
 .btn {
   display: inline-flex;
@@ -179,7 +183,6 @@ h2 {
 .btn-primary {
   background: var(--accent);
   color: white;
-  flex: 1;
 }
 
 .btn-primary:hover, .btn-primary:active {
@@ -195,7 +198,6 @@ h2 {
 .btn-secondary {
   background: var(--bg-card);
   color: var(--text-primary);
-  flex: 1;
 }
 
 .btn-secondary:hover, .btn-secondary:active {
@@ -204,6 +206,9 @@ h2 {
 
 .btn-full {
   width: 100%;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .btn-icon {
@@ -337,6 +342,16 @@ h2 {
   margin-top: 1rem;
 }
 
+.memo-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.memo-actions .btn {
+  flex: 1;
+  min-width: 120px;
+}
+
 .memo-timer {
   font-size: 0.9rem;
   color: var(--text-secondary);
@@ -363,6 +378,15 @@ h2 {
   font-size: 1rem;
   color: var(--text-secondary);
   text-align: center;
+}
+
+.timer-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.timer-actions .btn {
+  min-width: 140px;
 }
 
 /* === Test === */
@@ -409,6 +433,10 @@ h2 {
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
+}
+
+.test-actions .btn {
+  flex: 1;
 }
 
 /* === Resultados === */
