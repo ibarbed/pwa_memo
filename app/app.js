@@ -311,10 +311,32 @@
 
   let currentRoute = 'home';
   let currentState = {}; // Estado temporal de la vista actual
+  let moduleStates = {}; // Estado persistente por módulo (para no perder ejercicios al navegar)
+
+  // Guardar estado del módulo actual antes de cambiar
+  function saveCurrentModuleState() {
+    if (currentRoute && currentState && currentState.phase) {
+      moduleStates[currentRoute] = { ...currentState };
+    }
+  }
+
+  // Restaurar estado de un módulo si existe
+  function getModuleState(route) {
+    return moduleStates[route] || {};
+  }
+
+  // Limpiar estado de un módulo (cuando se completa o cancela un ejercicio)
+  function clearModuleState(module) {
+    delete moduleStates[module];
+  }
 
   function navigate(route, state = {}) {
+    // Guardar estado del módulo actual antes de cambiar
+    saveCurrentModuleState();
+
     currentRoute = route;
-    currentState = state;
+    // Si hay estado en state, usarlo; si no, restaurar estado guardado del módulo
+    currentState = Object.keys(state).length > 0 ? state : getModuleState(route);
     window.location.hash = route;
     render();
     updateNavigation();
@@ -323,8 +345,12 @@
   function handleHashChange() {
     const hash = window.location.hash.slice(1) || 'home';
     if (routes[hash]) {
+      // Guardar estado del módulo actual antes de cambiar
+      saveCurrentModuleState();
+
       currentRoute = hash;
-      currentState = {};
+      // Restaurar estado guardado del módulo destino (si existe)
+      currentState = getModuleState(hash);
       render();
       updateNavigation();
     }
@@ -775,6 +801,7 @@
         clearInterval(timerInterval);
         exercise.totalTime = Math.floor((Date.now() - currentState.startTime) / 1000);
         await saveExercise(exercise);
+        clearModuleState(module); // Limpiar estado guardado del módulo
         currentState = {};
         render();
       });
@@ -856,6 +883,14 @@
   function renderTest(container, module, title) {
     const { exercise } = currentState;
 
+    // Verificar que existe el ejercicio
+    if (!exercise || !exercise.items) {
+      console.error('renderTest: No hay ejercicio válido en currentState');
+      currentState = {};
+      render();
+      return;
+    }
+
     let testPrompts = [];
     if (module === 'numeros') {
       if (exercise.withObjects) {
@@ -909,23 +944,34 @@
       </div>
     `;
 
-    document.getElementById('submitBtn').addEventListener('click', async () => {
-      const answers = [];
-      document.querySelectorAll('.test-item input').forEach((input, i) => {
-        answers.push({
-          userAnswer: input.value,
-          expected: testPrompts[i].expected,
-          isNumeric: testPrompts[i].isNumeric,
-          correct: compareAnswers(input.value, testPrompts[i].expected, testPrompts[i].isNumeric)
+    const submitBtn = document.getElementById('submitBtn');
+    if (!submitBtn) {
+      console.error('renderTest: No se encontró el botón submitBtn');
+      return;
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      try {
+        const answers = [];
+        document.querySelectorAll('.test-item input').forEach((input, i) => {
+          answers.push({
+            userAnswer: input.value,
+            expected: testPrompts[i].expected,
+            isNumeric: testPrompts[i].isNumeric,
+            correct: compareAnswers(input.value, testPrompts[i].expected, testPrompts[i].isNumeric)
+          });
         });
-      });
 
-      const correctCount = answers.filter(a => a.correct).length;
-      exercise.lastResult = { correct: correctCount, total: answers.length };
-      await saveExercise(exercise);
+        const correctCount = answers.filter(a => a.correct).length;
+        exercise.lastResult = { correct: correctCount, total: answers.length };
+        await saveExercise(exercise);
 
-      currentState = { phase: 'results', module, exercise, answers };
-      render();
+        currentState = { phase: 'results', module, exercise, answers };
+        render();
+      } catch (error) {
+        console.error('Error al corregir el test:', error);
+        alert('Error al corregir el test. Por favor, intenta de nuevo.');
+      }
     });
   }
 
@@ -962,6 +1008,7 @@
     `;
 
     document.getElementById('finishBtn').addEventListener('click', () => {
+      clearModuleState(module); // Limpiar estado guardado del módulo
       currentState = {};
       render();
     });
