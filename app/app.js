@@ -276,7 +276,10 @@
   }
 
   async function saveExercise(exercise) {
-    await dbPut('exercises', exercise);
+    const id = await dbPut('exercises', exercise);
+    if (!exercise.id) {
+      exercise.id = id;
+    }
     return exercise;
   }
 

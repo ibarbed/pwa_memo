@@ -1,6 +1,6 @@
 // Casillero mental: equivalencias número (0–99) → objeto
 // Formato: [{ n, objeto }] (mantiene null donde no hay valor)
-export const CASILLERO = [
+const CASILLERO_DEFAULT = [
   { n: 0, objeto: "Aro" },
   { n: 1, objeto: "Hada" },
   { n: 2, objeto: "Ñu" },
