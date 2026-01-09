@@ -358,8 +358,9 @@
 
   let currentRoute = 'home';
   let currentState = {}; // Estado temporal de la vista actual
-  let activeTimerInterval = null; // Intervalo del timer activo (para limpiarlo al navegar)
+  let activeTimerInterval = null; // Intervalo del timer activo (para actualizar display)
   let activeTimerModule = null; // Módulo que tiene el timer activo
+  let timerEndTime = null; // Timestamp de cuándo termina el timer (persiste al navegar)
   let moduleStates = {}; // Estado persistente por módulo (para no perder ejercicios al navegar)
 
   // Guardar estado del módulo actual antes de cambiar
@@ -380,11 +381,10 @@
   }
 
   function navigate(route, state = {}) {
-    // Limpiar timer activo antes de cambiar de módulo
+    // Limpiar interval del display (pero mantener el timer activo en background)
     if (activeTimerInterval) {
       clearInterval(activeTimerInterval);
       activeTimerInterval = null;
-      activeTimerModule = null;
     }
 
     // Guardar estado del módulo actual antes de cambiar
@@ -401,11 +401,10 @@
   function handleHashChange() {
     const hash = window.location.hash.slice(1) || 'home';
     if (routes[hash]) {
-      // Limpiar timer activo antes de cambiar de módulo
+      // Limpiar interval del display (pero mantener el timer activo en background)
       if (activeTimerInterval) {
         clearInterval(activeTimerInterval);
         activeTimerInterval = null;
-        activeTimerModule = null;
       }
 
       // Guardar estado del módulo actual antes de cambiar
@@ -899,25 +898,38 @@
   // TEMPORIZADOR (compartido)
   // ============================================
 
+  // Función para limpiar completamente el timer
+  function clearTimer() {
+    if (activeTimerInterval) {
+      clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+    }
+    activeTimerModule = null;
+    timerEndTime = null;
+  }
+
   async function renderTimer(container, module, title) {
-    // Limpiar cualquier timer anterior
+    // Limpiar interval anterior del display (si existe)
     if (activeTimerInterval) {
       clearInterval(activeTimerInterval);
       activeTimerInterval = null;
     }
 
-    // Marcar este módulo como el que tiene el timer activo
-    activeTimerModule = module;
-
     const timerDuration = await getConfig('timerDuration', 180); // 3 minutos por defecto
-    let remaining = timerDuration;
 
-    function updateDisplay() {
-      const display = document.getElementById('timerDisplay');
-      if (display) {
-        display.textContent = formatTime(remaining);
-      }
+    // Si es un timer nuevo (no hay timer activo o es de otro módulo), inicializarlo
+    if (!timerEndTime || activeTimerModule !== module) {
+      timerEndTime = Date.now() + timerDuration * 1000;
+      activeTimerModule = module;
     }
+
+    // Calcular tiempo restante basándose en timerEndTime
+    function getRemaining() {
+      return Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000));
+    }
+
+    let remaining = getRemaining();
+    const timerFinished = remaining <= 0;
 
     container.innerHTML = `
       <h1>Preparación - ${title}</h1>
@@ -925,8 +937,8 @@
         <div class="timer-label">Repasa mentalmente antes del test</div>
         <div class="timer-display" id="timerDisplay">${formatTime(remaining)}</div>
         <div class="timer-actions">
-          <button class="btn btn-primary" id="startTestBtn" style="display: none;">Comenzar test</button>
-          <button class="btn btn-secondary" id="skipBtn">Saltar espera</button>
+          <button class="btn btn-primary" id="startTestBtn" style="display: ${timerFinished ? 'block' : 'none'};">Comenzar test</button>
+          <button class="btn btn-secondary" id="skipBtn" style="display: ${timerFinished ? 'none' : 'block'};">Saltar espera</button>
         </div>
       </div>
     `;
@@ -934,30 +946,32 @@
     const startTestBtn = document.getElementById('startTestBtn');
     const skipBtn = document.getElementById('skipBtn');
 
-    activeTimerInterval = setInterval(() => {
-      remaining--;
-      updateDisplay();
-      if (remaining <= 0) {
-        clearInterval(activeTimerInterval);
-        activeTimerInterval = null;
-        activeTimerModule = null;
-        skipBtn.style.display = 'none';
-        startTestBtn.style.display = 'block';
-      }
-    }, 1000);
+    // Solo crear interval si el timer no ha terminado
+    if (!timerFinished) {
+      activeTimerInterval = setInterval(() => {
+        remaining = getRemaining();
+        const display = document.getElementById('timerDisplay');
+        if (display) {
+          display.textContent = formatTime(remaining);
+        }
+        if (remaining <= 0) {
+          clearInterval(activeTimerInterval);
+          activeTimerInterval = null;
+          // No limpiar activeTimerModule ni timerEndTime aquí - el usuario debe dar click
+          if (skipBtn) skipBtn.style.display = 'none';
+          if (startTestBtn) startTestBtn.style.display = 'block';
+        }
+      }, 1000);
+    }
 
     skipBtn.addEventListener('click', () => {
-      clearInterval(activeTimerInterval);
-      activeTimerInterval = null;
-      activeTimerModule = null;
+      clearTimer();
       skipBtn.style.display = 'none';
       startTestBtn.style.display = 'block';
     });
 
     startTestBtn.addEventListener('click', () => {
-      clearInterval(activeTimerInterval);
-      activeTimerInterval = null;
-      activeTimerModule = null;
+      clearTimer();
       currentState = { phase: 'test', module, exercise: currentState.exercise, answers: [] };
       render();
     });
