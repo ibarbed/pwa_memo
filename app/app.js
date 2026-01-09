@@ -231,13 +231,19 @@
     // Mantener: exercises, config
   }
 
-  // Nivel 2: Resetear todo
+  // Nivel 2: Resetear todo (hard reload completo)
   async function resetAllCache() {
-    // Eliminar todo el caché del Service Worker
+    // 1. Desregistrar el Service Worker para forzar recarga completa
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+    }
+
+    // 2. Eliminar todo el caché del Service Worker
     const keys = await caches.keys();
     await Promise.all(keys.map(key => caches.delete(key)));
 
-    // Eliminar toda la base de datos IndexedDB
+    // 3. Eliminar toda la base de datos IndexedDB
     db.close();
     await new Promise((resolve, reject) => {
       const request = indexedDB.deleteDatabase('memo-db');
