@@ -204,6 +204,15 @@ h2 {
   background: var(--border);
 }
 
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover, .btn-danger:active {
+  background: #c82333;
+}
+
 .btn-full {
   width: 100%;
   max-width: 320px;
@@ -609,6 +618,36 @@ h2 {
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-primary);
+}
+
+/* Opciones de caché */
+.cache-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--bg-card);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.cache-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cache-option-info strong {
+  color: var(--text-primary);
+}
+
+.cache-option-info .text-muted {
+  font-size: 0.8rem;
+}
+
+.cache-option .btn {
+  flex-shrink: 0;
 }
 
 /* === Modal === */

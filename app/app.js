@@ -202,6 +202,50 @@
     });
   }
 
+  async function dbClear(storeName) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  // ============================================
+  // GESTIÓN DE CACHÉ
+  // ============================================
+
+  // Nivel 1: Recargar datos (mantiene historial)
+  async function resetDataCache() {
+    // Eliminar archivos de datos del Service Worker cache
+    const cache = await caches.open('memo-v5');
+    await cache.delete('./data/mental_casillero.js');
+    await cache.delete('./data/objetos.js');
+    await cache.delete('./data/conceptos.js');
+
+    // Limpiar casillero de IndexedDB (se recargará desde archivo)
+    await dbClear('casillero');
+    await dbClear('casillero_state');
+
+    // Mantener: exercises, config
+  }
+
+  // Nivel 2: Resetear todo
+  async function resetAllCache() {
+    // Eliminar todo el caché del Service Worker
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+
+    // Eliminar toda la base de datos IndexedDB
+    db.close();
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase('memo-db');
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   // ============================================
   // CASILLERO MENTAL
   // ============================================
@@ -1053,6 +1097,29 @@
           `).join('')}
         </div>
       </div>
+
+      <div class="settings-section cache-section">
+        <h2>Gestión de Caché</h2>
+        <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
+          Usa estas opciones para actualizar los datos de la app cuando hayas modificado los archivos de casillero, objetos o conceptos.
+        </p>
+
+        <div class="cache-option">
+          <div class="cache-option-info">
+            <strong>Recargar datos</strong>
+            <span class="text-muted">Actualiza casillero, objetos y conceptos. Mantiene tu historial de ejercicios.</span>
+          </div>
+          <button class="btn btn-secondary" id="resetDataBtn">Recargar</button>
+        </div>
+
+        <div class="cache-option">
+          <div class="cache-option-info">
+            <strong>Resetear todo</strong>
+            <span class="text-muted">Elimina todo el caché incluyendo el historial. La app volverá al estado inicial.</span>
+          </div>
+          <button class="btn btn-danger" id="resetAllBtn">Resetear</button>
+        </div>
+      </div>
     `;
 
     // Guardar temporizador
@@ -1077,6 +1144,26 @@
           renderAjustes(container);
         });
       });
+    });
+
+    // Recargar datos (mantiene historial)
+    document.getElementById('resetDataBtn').addEventListener('click', async () => {
+      if (!confirm('¿Recargar datos de casillero, objetos y conceptos?\n\nEl historial de ejercicios se mantendrá.')) {
+        return;
+      }
+      await resetDataCache();
+      alert('Datos recargados. La página se recargará.');
+      location.reload();
+    });
+
+    // Resetear todo
+    document.getElementById('resetAllBtn').addEventListener('click', async () => {
+      if (!confirm('¿Eliminar TODO el caché incluyendo el historial?\n\n⚠️ Esta acción no se puede deshacer.')) {
+        return;
+      }
+      await resetAllCache();
+      alert('Caché eliminado. La página se recargará.');
+      location.reload();
     });
   }
 
