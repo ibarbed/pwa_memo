@@ -358,6 +358,8 @@
 
   let currentRoute = 'home';
   let currentState = {}; // Estado temporal de la vista actual
+  let activeTimerInterval = null; // Intervalo del timer activo (para limpiarlo al navegar)
+  let activeTimerModule = null; // Módulo que tiene el timer activo
   let moduleStates = {}; // Estado persistente por módulo (para no perder ejercicios al navegar)
 
   // Guardar estado del módulo actual antes de cambiar
@@ -378,6 +380,13 @@
   }
 
   function navigate(route, state = {}) {
+    // Limpiar timer activo antes de cambiar de módulo
+    if (activeTimerInterval) {
+      clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+      activeTimerModule = null;
+    }
+
     // Guardar estado del módulo actual antes de cambiar
     saveCurrentModuleState();
 
@@ -392,6 +401,13 @@
   function handleHashChange() {
     const hash = window.location.hash.slice(1) || 'home';
     if (routes[hash]) {
+      // Limpiar timer activo antes de cambiar de módulo
+      if (activeTimerInterval) {
+        clearInterval(activeTimerInterval);
+        activeTimerInterval = null;
+        activeTimerModule = null;
+      }
+
       // Guardar estado del módulo actual antes de cambiar
       saveCurrentModuleState();
 
@@ -488,12 +504,25 @@
   async function renderModuleLanding(container, module, title) {
     const todayExercise = await getExerciseForToday(module);
     const hasTodayExercise = !!todayExercise;
+    const timerActiveInOtherModule = activeTimerModule && activeTimerModule !== module;
+
+    let startBtnText = 'Comenzar ejercicio del día';
+    let startBtnDisabled = false;
+
+    if (hasTodayExercise) {
+      startBtnText = 'Ejercicio de hoy completado';
+      startBtnDisabled = true;
+    } else if (timerActiveInOtherModule) {
+      const moduleNames = { numeros: 'Números', objetos: 'Objetos', conceptos: 'Conceptos' };
+      startBtnText = `Timer activo en ${moduleNames[activeTimerModule]}`;
+      startBtnDisabled = true;
+    }
 
     container.innerHTML = `
       <h1>${title}</h1>
       <div class="module-landing">
-        <button class="btn btn-primary" id="startBtn" ${hasTodayExercise ? 'disabled' : ''}>
-          ${hasTodayExercise ? 'Ejercicio de hoy completado' : 'Comenzar ejercicio del día'}
+        <button class="btn btn-primary" id="startBtn" ${startBtnDisabled ? 'disabled' : ''}>
+          ${startBtnText}
         </button>
         <button class="btn btn-secondary" id="historyBtn">
           Revisar ejercicios pasados
@@ -871,9 +900,17 @@
   // ============================================
 
   async function renderTimer(container, module, title) {
+    // Limpiar cualquier timer anterior
+    if (activeTimerInterval) {
+      clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+    }
+
+    // Marcar este módulo como el que tiene el timer activo
+    activeTimerModule = module;
+
     const timerDuration = await getConfig('timerDuration', 180); // 3 minutos por defecto
     let remaining = timerDuration;
-    let timerInterval = null;
 
     function updateDisplay() {
       const display = document.getElementById('timerDisplay');
@@ -897,23 +934,30 @@
     const startTestBtn = document.getElementById('startTestBtn');
     const skipBtn = document.getElementById('skipBtn');
 
-    timerInterval = setInterval(() => {
+    activeTimerInterval = setInterval(() => {
       remaining--;
       updateDisplay();
       if (remaining <= 0) {
-        clearInterval(timerInterval);
+        clearInterval(activeTimerInterval);
+        activeTimerInterval = null;
+        activeTimerModule = null;
         skipBtn.style.display = 'none';
         startTestBtn.style.display = 'block';
       }
     }, 1000);
 
     skipBtn.addEventListener('click', () => {
-      clearInterval(timerInterval);
+      clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+      activeTimerModule = null;
       skipBtn.style.display = 'none';
       startTestBtn.style.display = 'block';
     });
 
     startTestBtn.addEventListener('click', () => {
+      clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+      activeTimerModule = null;
       currentState = { phase: 'test', module, exercise: currentState.exercise, answers: [] };
       render();
     });
