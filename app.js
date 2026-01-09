@@ -216,19 +216,23 @@
   // GESTIÓN DE CACHÉ
   // ============================================
 
-  // Nivel 1: Recargar datos (mantiene historial)
+  // Nivel 1: Recargar app (actualiza código, mantiene historial)
   async function resetDataCache() {
-    // Eliminar archivos de datos del Service Worker cache
-    const cache = await caches.open('memo-v5');
-    await cache.delete('./data/mental_casillero.js');
-    await cache.delete('./data/objetos.js');
-    await cache.delete('./data/conceptos.js');
+    // 1. Desregistrar el Service Worker para forzar descarga de código nuevo
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+    }
 
-    // Limpiar casillero de IndexedDB (se recargará desde archivo)
+    // 2. Eliminar todo el caché del Service Worker (descargará todo de GitHub)
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+
+    // 3. Limpiar casillero de IndexedDB (se recargará desde archivo)
     await dbClear('casillero');
     await dbClear('casillero_state');
 
-    // Mantener: exercises, config
+    // Mantener: exercises, config (historial de ejercicios)
   }
 
   // Nivel 2: Resetear todo (hard reload completo)
@@ -567,6 +571,7 @@
 
     container.innerHTML = `
       <h1>Historial - ${title}</h1>
+      <button class="btn btn-secondary btn-full mb-1" id="backBtn">Volver</button>
       <div class="history-list">
         ${exercises.map(ex => `
           <div class="history-item" data-id="${ex.id}">
@@ -579,7 +584,6 @@
           </div>
         `).join('')}
       </div>
-      <button class="btn btn-secondary btn-full mt-1" id="backBtn">Volver</button>
     `;
 
     document.querySelectorAll('.history-item').forEach(item => {
@@ -1166,21 +1170,21 @@
       <div class="settings-section cache-section">
         <h2>Gestión de Caché</h2>
         <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
-          Usa estas opciones para actualizar los datos de la app cuando hayas modificado los archivos de casillero, objetos o conceptos.
+          Opciones para actualizar la app con los últimos cambios de GitHub.
         </p>
 
         <div class="cache-option">
           <div class="cache-option-info">
-            <strong>Recargar datos</strong>
-            <span class="text-muted">Actualiza casillero, objetos y conceptos. Mantiene tu historial de ejercicios.</span>
+            <strong>Actualizar app</strong>
+            <span class="text-muted">Descarga código y datos nuevos de GitHub. Mantiene tu historial de ejercicios.</span>
           </div>
-          <button class="btn btn-secondary" id="resetDataBtn">Recargar</button>
+          <button class="btn btn-secondary" id="resetDataBtn">Actualizar</button>
         </div>
 
         <div class="cache-option">
           <div class="cache-option-info">
             <strong>Resetear todo</strong>
-            <span class="text-muted">Elimina todo el caché incluyendo el historial. La app volverá al estado inicial.</span>
+            <span class="text-muted">Elimina todo incluyendo el historial. La app volverá al estado inicial.</span>
           </div>
           <button class="btn btn-danger" id="resetAllBtn">Resetear</button>
         </div>
@@ -1229,13 +1233,13 @@
       });
     });
 
-    // Recargar datos (mantiene historial)
+    // Actualizar app (mantiene historial)
     document.getElementById('resetDataBtn').addEventListener('click', async () => {
-      if (!confirm('¿Recargar datos de casillero, objetos y conceptos?\n\nEl historial de ejercicios se mantendrá.')) {
+      if (!confirm('¿Descargar la última versión de la app desde GitHub?\n\nTu historial de ejercicios se mantendrá.')) {
         return;
       }
       await resetDataCache();
-      alert('Datos recargados. La página se recargará.');
+      alert('Actualizando app...');
       location.reload();
     });
 
