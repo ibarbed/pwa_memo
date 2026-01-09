@@ -5,7 +5,7 @@ const CASILLERO_DEFAULT = [
   { n: 1, objeto: "Hada" },
   { n: 2, objeto: "Ñu" },
   { n: 3, objeto: "Humo" },
-  { n: 4, objeto: "Oca (tío Waldo)" },
+  { n: 4, objeto: "Occa (tío Waldo)" },
   { n: 5, objeto: "Ola (tsunami)" },
   { n: 6, objeto: "Oso" },
   { n: 7, objeto: "UFO" },
