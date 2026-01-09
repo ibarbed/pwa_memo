@@ -552,7 +552,7 @@
       item.addEventListener('click', async () => {
         const exercise = await getExerciseById(parseInt(item.dataset.id));
         if (exercise) {
-          currentState = { phase: 'timer', module, exercise };
+          currentState = { phase: 'test', module, exercise };
           render();
         }
       });
