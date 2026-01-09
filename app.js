@@ -1163,24 +1163,6 @@
         </p>
       </div>
 
-      <div class="settings-section">
-        <h2>Casillero Mental (1-100)</h2>
-        <div class="casillero-list">
-          ${casillero.map(item => `
-            <div class="casillero-item" data-n="${item.n}">
-              <span class="num">${item.n}</span>
-              <span class="obj">${item.objeto}</span>
-              <button class="edit-btn" data-n="${item.n}">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
       <div class="settings-section cache-section">
         <h2>Gestión de Caché</h2>
         <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
@@ -1201,6 +1183,24 @@
             <span class="text-muted">Elimina todo el caché incluyendo el historial. La app volverá al estado inicial.</span>
           </div>
           <button class="btn btn-danger" id="resetAllBtn">Resetear</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Casillero Mental (1-100)</h2>
+        <div class="casillero-list">
+          ${casillero.map(item => `
+            <div class="casillero-item" data-n="${item.n}">
+              <span class="num">${item.n}</span>
+              <span class="obj">${item.objeto}</span>
+              <button class="edit-btn" data-n="${item.n}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+            </div>
+          `).join('')}
         </div>
       </div>
     `;
