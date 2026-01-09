@@ -965,13 +965,18 @@
     }
 
     skipBtn.addEventListener('click', () => {
-      clearTimer();
+      // Solo limpiar interval, pero mantener timerEndTime en el pasado para que no se reinicie
+      if (activeTimerInterval) {
+        clearInterval(activeTimerInterval);
+        activeTimerInterval = null;
+      }
+      timerEndTime = Date.now() - 1000; // Marcar como terminado
       skipBtn.style.display = 'none';
       startTestBtn.style.display = 'block';
     });
 
     startTestBtn.addEventListener('click', () => {
-      clearTimer();
+      clearTimer(); // Limpiar completamente al comenzar test
       currentState = { phase: 'test', module, exercise: currentState.exercise, answers: [] };
       render();
     });
