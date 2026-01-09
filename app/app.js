@@ -552,7 +552,7 @@
       item.addEventListener('click', async () => {
         const exercise = await getExerciseById(parseInt(item.dataset.id));
         if (exercise) {
-          currentState = { phase: 'test', module, exercise };
+          currentState = { phase: 'test', module, exercise, fromHistory: true };
           render();
         }
       });
@@ -967,6 +967,8 @@
       }));
     }
 
+    const fromHistory = currentState.fromHistory || false;
+
     container.innerHTML = `
       <h1>Test - ${title}</h1>
       <div class="test-container">
@@ -981,9 +983,12 @@
                    autocapitalize="off">
           </div>
         `).join('')}
-        <button class="btn btn-primary btn-full" id="submitBtn">
-          Corregir
-        </button>
+        <div class="test-actions">
+          ${fromHistory ? '<button class="btn btn-secondary" id="backBtn">Atrás</button>' : ''}
+          <button class="btn btn-primary ${fromHistory ? '' : 'btn-full'}" id="submitBtn">
+            Corregir
+          </button>
+        </div>
       </div>
     `;
 
@@ -1016,6 +1021,15 @@
         alert('Error al corregir el test. Por favor, intenta de nuevo.');
       }
     });
+
+    // Botón atrás (solo cuando viene del historial)
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        currentState = { phase: 'history', module };
+        render();
+      });
+    }
   }
 
   // ============================================
